@@ -34,9 +34,9 @@
   </head>
 
   <body>
-    
+    <figure id="lineGraph"></figure>
+
     <script>
-    
       var data = [
         { timestamp: '20111001', temperature: 63.4 },
         { timestamp: '20111002', temperature: 58.0 },
@@ -250,7 +250,7 @@
 
         .on('mousemove', function (event) {
           let mouse = d3.mouse(this);
-          console.log(mouse)
+          console.log(mouse);
           mousex = d3.mouse(this)[0] - 70;
           mousey = d3.mouse(this)[1] - 70;
 
