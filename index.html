@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- <script data-require="d3@3.5.3" data-semver="3.5.3" src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.js"></script> -->
+
+    <script
+      data-require="d3@4.6.0"
+      data-semver="4.6.0"
+      src="//cdnjs.cloudflare.com/ajax/libs/d3/4.6.0/d3.js"
+    ></script>
+
+    <style>
+      body {
+        font: 10px sans-serif;
+      }
+
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+
+      .x.axis path {
+        display: none;
+      }
+
+      .line {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 1.5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      var data = [
+        { date: '20111001', temperature: 63.4 },
+        { date: '20111002', temperature: 58.0 },
+        { date: '20111003', temperature: 53.3 },
+        { date: '20111004', temperature: 55.7 },
+        { date: '20111005', temperature: 64.2 },
+      ];
+      //console.log(data)
+
+      var margin = {
+          top: 20,
+          right: 80,
+          bottom: 30,
+          left: 50,
+        },
+        width = 900 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+      var svg = d3
+        .select('body')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+      var x = d3
+        .scaleTime()
+        .domain(
+          d3.extent(data, function (d) {
+            return new Date(d['timestamp']);
+          })
+        )
+        .range([0, this.width])
+        .nice();
+
+      //Add Y axis
+      var y = d3
+        .scaleLinear()
+        .domain(
+          d3.extent(data, function (d) {
+            return parseFloat(d['temperature']);
+          })
+        )
+        .range([this.height, 0]);
+
+      let xAxisGenerator = d3.axisBottom(x).tickSize(-this.height);
+      var xAxis = this.svg
+        .append('g')
+        .attr('class', 'x axis')
+        .attr('transform', 'translate(0, ' + this.height + ')')
+        .call(xAxisGenerator);
+
+      //Add the right x label
+      svg
+        .append('text')
+        .attr('text-anchor', 'end')
+        .attr('x', this.width)
+        .attr('y', this.height + this.margin.top + 30)
+        .text('Time Range');
+
+      //Add y grid
+      let yAxisGenerator = d3.axisLeft(y).tickSize(-this.width);
+      svg
+        .append('g')
+        .attr('class', 'y axis')
+        .attr('transform', 'translate(0, 0)')
+        .call(yAxisGenerator);
+
+      // Add the left text label
+      svg
+        .append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 0 - this.margin.left)
+        .attr('x', 0 - this.height / 2)
+        .attr('dy', '1em')
+        .style('text-anchor', 'middle')
+        .text('Temperature (°C)');
+
+      //Add the graph background color
+      this.svg
+        .append('g')
+        .append('rect')
+        .attr('x', 1)
+        .attr('width', this.width)
+        .attr('y', 0)
+        .attr('height', this.height)
+        .attr('fill', 'black')
+        .attr('opacity', '0.8');
+
+      var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+      color.domain(
+        Object.keys(data[0]).filter(function (key) {
+          return key !== 'timestamp';
+        })
+      );
+
+      var new_data = color.domain().map(function (temperature) {
+        return {
+          name: temperature,
+          values: data.map(function (d) {
+            return {
+              timestamp: d.timestamp,
+              temperature: +d[temperature],
+            };
+          }),
+        };
+      });
+
+      console.log(new_data);
+
+      //   // Add a clipPath: everything out of this area won't be drawn.
+      this.svg
+        .append('defs')
+        .append('svg:clipPath')
+        .attr('id', 'clip')
+        .append('svg:rect')
+        .attr('width', this.width)
+        .attr('height', this.height)
+        .attr('x', 0)
+        .attr('y', 0);
+
+      // // Add brushing
+      var brush = d3
+        .brushX() // Add the brush feature using the d3.brush function
+        .extent([
+          [0, 0],
+          [this.width, this.height],
+        ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+        .on('end', updateChart); // Each time the brush selection changes, trigger the 'updateChart' function
+
+      //   // // Create the line variable: where both the line and the brush take place
+      var line = this.svg.append('g').attr('clip-path', 'url(#clip)');
+
+      // Add the line
+      line
+        .append('path')
+        .datum(data)
+        .attr('class', 'line')
+        .attr('fill', 'none')
+        .attr('stroke', 'steelblue')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-linejoin', 'round')
+        .attr(
+          'd',
+          d3
+            .line()
+            .x(function (d) {
+              return x(d['timestamp']);
+            })
+            .y(function (d) {
+              return y(d['temperature']);
+            })
+            .defined(function (d) {
+              return d['timestamp'] !== null;
+            })
+        );
+
+      // Add the brushing
+      line.append('g').attr('class', 'brush').call(brush);
+
+      // create a tooltip
+      var tooltip = d3
+        .select('#lineGraph')
+        .append('div')
+        .style('position', 'absolute')
+        .style('visibility', 'hidden')
+        .style('background-color', 'white')
+        .style('border', 'solid')
+        .style('border-width', '1px')
+        .style('border-radius', '5px')
+        .style('padding', '10px')
+        .style('font-size', '12px')
+        .style('font-weight', 'bold')
+        .style('color', 'black');
+
+      var vertical = d3
+        .select('#lineGraph')
+        .append('div')
+        .style('position', 'absolute')
+        .style('width', '1px')
+        .style('height', this.height + 'px')
+        .style('top', this.margin.top + this.margin.bottom + 20 + 'px')
+        .style('bottom', '0px')
+        .style('left', '0px')
+        .style('background', '#fff')
+        .style('opacity', '0.1')
+        .style('stroke-width', '1px');
+
+      var horizontal = d3
+        .select('#lineGraph')
+        .append('div')
+        .style('position', 'absolute')
+        .style('width', this.width + 'px')
+        .style('height', '1px')
+        .style('left', this.margin.left + 'px')
+        .style('top', '0px')
+        .style('background', '#fff')
+        .style('opacity', '0.1')
+        .style('stroke-width', '1px');
+
+      let mousex, mousey;
+
+      d3.select('g')
+        .on('mouseover', function () {
+          vertical.style('visibility', 'visible');
+          horizontal.style('visibility', 'visible');
+          tooltip.style('visibility', 'visible');
+        })
+
+        .on('mousemove', function (event) {
+          event = d3.mouse(this);
+          mousex = event.pageX - 70;
+          mousey = event.pageY - 70;
+
+          vertical.style('left', mousex + 'px').on('mouseover', function () {
+            vertical.style('left', mousex + 'px');
+          });
+
+          horizontal.style('top', mousey + 'px').on('mouseover', function () {
+            horizontal.style('top', mousey + 'px');
+          });
+
+          var invertedx = x.invert(mousex - 60);
+          var invertedy = y.invert(mousey - 80);
+
+          tooltip
+            .style('top', mousey + 'px')
+            .style('left', mousex + 'px')
+            .html(
+              "Temperature: <span id='tooltipTemp'></span>" +
+                invertedy +
+                '<br/>' +
+                "TimeRange: <span id='tooltipHum'></span>" +
+                invertedx
+            );
+        })
+        .on('mouseout', function () {
+          vertical.style('visibility', 'hidden');
+          horizontal.style('visibility', 'hidden');
+          tooltip.style('visibility', 'hidden');
+        });
+
+      // A function that set idleTimeOut to null
+      var idleTimeout;
+      function idled() {
+        idleTimeout = null;
+      }
+
+      // A function that update the chart for given boundaries
+      function updateChart(event, d) {
+        // What are the selected boundaries?
+        var extent = event.selection;
+
+        // If no selection, back to initial coordinate. Otherwise, update X axis domain
+        if (!extent) {
+          if (!idleTimeout) return (idleTimeout = setTimeout(idled, 350)); // This allows to wait a little bit
+          x.domain([4, 8]);
+        } else {
+          x.domain([x.invert(extent[0]), x.invert(extent[1])]);
+          line.select('.brush').call(brush.clear, null); // This remove the grey brush area as soon as the selection has been done
+        }
+
+        // Update axis and line position
+        xAxis.transition().duration(1000).call(xAxisGenerator);
+
+        d3.select('.line')
+          .transition()
+          .duration(1000)
+          .attr(
+            'd',
+            d3
+              .line()
+              .x(function (d) {
+                return x(d['timestamp']);
+              })
+              .y(function (d) {
+                return y(d['temperature']);
+              })
+              .defined(function (d) {
+                return d['timestamp'] !== null;
+              })
+          );
+
+        // If user double click, reinitialize the chart
+        this.svg.on('dblclick', function () {
+          resetZoom();
+        });
+
+        var width = this.width;
+
+        function resetZoom() {
+          x.domain([
+            new Date(localStorage.getItem('startdate')),
+            new Date(localStorage.getItem('enddate')),
+          ])
+            .range([0, width])
+            .nice();
+
+          xAxis.transition().call(xAxisGenerator);
+
+          d3.select('.line')
+            .transition()
+            .attr(
+              'd',
+              d3
+                .line()
+                .x(function (d) {
+                  return x(d['timestamp']);
+                })
+                .y(function (d) {
+                  return y(d['temperature']);
+                })
+                .defined(function (d) {
+                  return d['timestamp'] !== null;
+                })
+            );
+        }
+      }
+    </script>
+  </body>
+</html>
