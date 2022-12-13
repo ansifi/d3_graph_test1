@@ -36,11 +36,11 @@
   <body>
     <script>
       var data = [
-        { date: '20111001', temperature: 63.4 },
-        { date: '20111002', temperature: 58.0 },
-        { date: '20111003', temperature: 53.3 },
-        { date: '20111004', temperature: 55.7 },
-        { date: '20111005', temperature: 64.2 },
+        { timestamp: '20111001', temperature: 63.4 },
+        { timestamp: '20111002', temperature: 58.0 },
+        { timestamp: '20111003', temperature: 53.3 },
+        { timestamp: '20111004', temperature: 55.7 },
+        { timestamp: '20111005', temperature: 64.2 },
       ];
       //console.log(data)
 
@@ -65,7 +65,7 @@
         .scaleTime()
         .domain(
           d3.extent(data, function (d) {
-            return new Date(d['timestamp']);
+            return d.timestamp;
           })
         )
         .range([0, this.width])
@@ -76,13 +76,13 @@
         .scaleLinear()
         .domain(
           d3.extent(data, function (d) {
-            return parseFloat(d['temperature']);
+            return parseFloat(d.temperature);
           })
         )
         .range([this.height, 0]);
 
       let xAxisGenerator = d3.axisBottom(x).tickSize(-this.height);
-      var xAxis = this.svg
+      var xAxis = svg
         .append('g')
         .attr('class', 'x axis')
         .attr('transform', 'translate(0, ' + this.height + ')')
@@ -115,7 +115,7 @@
         .text('Temperature (°C)');
 
       //Add the graph background color
-      this.svg
+      svg
         .append('g')
         .append('rect')
         .attr('x', 1)
@@ -148,7 +148,7 @@
       console.log(new_data);
 
       //   // Add a clipPath: everything out of this area won't be drawn.
-      this.svg
+      svg
         .append('defs')
         .append('svg:clipPath')
         .attr('id', 'clip')
@@ -168,7 +168,7 @@
         .on('end', updateChart); // Each time the brush selection changes, trigger the 'updateChart' function
 
       //   // // Create the line variable: where both the line and the brush take place
-      var line = this.svg.append('g').attr('clip-path', 'url(#clip)');
+      var line = svg.append('g').attr('clip-path', 'url(#clip)');
 
       // Add the line
       line
@@ -321,7 +321,7 @@
           );
 
         // If user double click, reinitialize the chart
-        this.svg.on('dblclick', function () {
+        svg.on('dblclick', function () {
           resetZoom();
         });
 
