@@ -39,10 +39,11 @@
     <script>
       var data = [
         { timestamp: '20111001', temperature: 63.4 },
-        { timestamp: '20111002', temperature: 58.0 },
-        { timestamp: '20111003', temperature: 53.3 },
-        { timestamp: '20111004', temperature: 55.7 },
-        { timestamp: '20111005', temperature: 64.2 },
+        { timestamp: '20111002', temperature: 54.0 },
+        { timestamp: '20111003', temperature: 63.3 },
+        { timestamp: '20111004', temperature: 54.7 },
+        { timestamp: '20111005', temperature: 63.2 },
+        { timestamp: '20111006', temperature: 54.0 },
       ];
       //console.log(data)
 
@@ -246,9 +247,32 @@
 
     mouseG.append("path") // this is the black vertical line to follow mouse
       .attr("class", "mouse-line")
+      .style('position', 'absolute')
+        .style('width', '1px')
+        .style('height', this.height + 'px')
+        .style('top', this.margin.top + this.margin.bottom + 20 + 'px')
+        .style('bottom', '0px')
+        .style('left', '0px')
+        .style('background', '#fff')
+        .style('opacity', '0.1')
+        .style('stroke-width', '1px')
       .style("stroke", "black")
       .style("stroke-width", "1px")
       .style("opacity", "0");
+
+      mouseG.append("path") // this is the black vertical line to follow mouse
+      .attr("class", "mouse-line1")
+      .style("stroke", "black")
+      .style("stroke-width", "1px")
+      .style("opacity", "0")
+      .style('position', 'absolute')
+        .style('width', this.width + 'px')
+        .style('height', '1px')
+        .style('left', this.margin.left + 'px')
+        .style('top', '0px')
+        .style('background', '#fff')
+        .style('opacity', '0.1')
+        .style('stroke-width', '1px');;
       
     var lines = document.getElementsByClassName('line')
 
@@ -293,17 +317,24 @@
     })
     .on('mousemove', function() { // mouse moving over canvas
       var mouse = d3.mouse(this);
-      d3.select(".mouse-line")
+      // d3.select(".mouse-line")
+      //   .attr("d", function() {
+      //     var d = "M" + mouse[0] + "," + height;
+      //     d += " " + mouse[0] + "," + 0;
+      //     return d;
+      //   });
+
+        d3.select(".mouse-line1")
         .attr("d", function() {
-          var d = "M" + mouse[0] + "," + height;
-          d += " " + mouse[0] + "," + 0;
-          return d;
+          var d1 = "M" + mouse[0] + "," + height;
+          d1 += " " + mouse[0] + "," + 0;
+          return d1;
         });
 
       d3.selectAll(".mouse-per-line")
         .attr("transform", function(d, i) {
-          console.log(width/mouse[0])
-          var xDate = x.invert(mouse[0]);
+        //  console.log(width/mouse[0])
+         // var xDate = x.invert(mouse[0]);
               // bisect = d3.bisector(function(d) { return d.date; }).right;
               // idx = bisect(d.values, xDate);
             //  console.log(mouse[0], xDate, d);
@@ -324,10 +355,15 @@
           }
           
           d3.select(this).select('text')
-            .text(y.invert(pos.y).toFixed(2));
-            
+          .html(
+              "Temperature: <span id='tooltipTemp'></span>" +
+              mouse[0] +
+                '<br/>' +
+                "TimeRange: <span id='tooltipHum'></span>" +
+                y.invert(pos.y).toFixed(2))
+
           return "translate(" + mouse[0] + "," + pos.y +")";
-        });
+        });            
     });
 
       // d3.select('g')
@@ -339,24 +375,21 @@
 
       //   .on('mousemove', function (event) {
       //     let mouse = d3.mouse(this);
-      //     console.log(mouse);
-      //     mousex = d3.mouse(this)[0] - 70;
-      //     mousey = d3.mouse(this)[1] - 70;
 
-      //     vertical.style('left', mousex + 'px').on('mouseover', function () {
-      //       vertical.style('left', mousex + 'px');
+      //     vertical.style('left', mouse[0] + 'px').on('mouseover', function () {
+      //       vertical.style('left', mouse[1] + 'px');
       //     });
 
-      //     horizontal.style('top', mousey + 'px').on('mouseover', function () {
-      //       horizontal.style('top', mousey + 'px');
+      //     horizontal.style('top', mouse[0] + 'px').on('mouseover', function () {
+      //       horizontal.style('top', mouse[0] + 'px');
       //     });
 
-      //     var invertedx = x.invert(mousex - 60);
-      //     var invertedy = y.invert(mousey - 80);
+      //     var invertedx = x.invert(mouse[0]);
+      //     var invertedy = y.invert(mouse[1]);
 
       //     tooltip
-      //       .style('top', mousey + 'px')
-      //       .style('left', mousex + 'px')
+      //       .style('top', mouse[0] + 'px')
+      //       .style('left', mouse[1] + 'px')
       //       .html(
       //         "Temperature: <span id='tooltipTemp'></span>" +
       //           invertedy +
