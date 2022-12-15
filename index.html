@@ -241,38 +241,15 @@
         .style('stroke-width', '1px');
 
       let mousex, mousey;
+     
+      var mouseG =  line.append('g')
+      .attr("class", "mouse-over-effects");
 
-      var mouseG = svg.append("g")
-    .attr("class", "mouse-over-effects");
-
-    mouseG.append("path") // this is the black vertical line to follow mouse
+      mouseG.append("path") // this is the black vertical line to follow mouse
       .attr("class", "mouse-line")
-      .style('position', 'absolute')
-        .style('width', '1px')
-        .style('height', this.height + 'px')
-        .style('top', this.margin.top + this.margin.bottom + 20 + 'px')
-        .style('bottom', '0px')
-        .style('left', '0px')
-        .style('background', '#fff')
-        .style('opacity', '0.1')
-        .style('stroke-width', '1px')
       .style("stroke", "black")
       .style("stroke-width", "1px")
       .style("opacity", "0");
-
-      mouseG.append("path") // this is the black vertical line to follow mouse
-      .attr("class", "mouse-line1")
-      .style("stroke", "black")
-      .style("stroke-width", "1px")
-      .style("opacity", "0")
-      .style('position', 'absolute')
-        .style('width', this.width + 'px')
-        .style('height', '1px')
-        .style('left', this.margin.left + 'px')
-        .style('top', '0px')
-        .style('background', '#fff')
-        .style('opacity', '0.1')
-        .style('stroke-width', '1px');;
       
     var lines = document.getElementsByClassName('line')
 
@@ -292,52 +269,51 @@
       .style("opacity", "0");
 
     mousePerLine.append("text")
-      .attr("transform", "translate(10,3)");
+      .attr("transform", "translate(10,3)")
+        .style('position', 'absolute')
+        .style('background-color', 'white')
+        .style('border', 'solid')
+        .style('border-width', '1px')
+        .style('border-radius', '5px')
+        .style('padding', '10px')
+        .style('font-size', '12px')
+        .style('font-weight', 'bold')
+        .style('color', 'black');
+     
+    d3.select('g')
+        .on('mouseover', function () {
+          vertical.style('visibility', 'visible');
+          horizontal.style('visibility', 'visible');
+          tooltip.style('visibility', 'visible');
 
-  mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
-    .attr('width', width) // can't catch mouse events on a g element
-    .attr('height', this.height)
-    .attr('fill', 'none')
-    .attr('pointer-events', 'all')
-    .on('mouseout', function() { // on mouse out hide line, circles and text
-      d3.select(".mouse-line")
-        .style("opacity", "0");
-      d3.selectAll(".mouse-per-line circle")
-        .style("opacity", "0");
-      d3.selectAll(".mouse-per-line text")
-        .style("opacity", "0");
-    })
-    .on('mouseover', function() { // on mouse in show line, circles and text
-      d3.select(".mouse-line")
-        .style("opacity", "1");
-      d3.selectAll(".mouse-per-line circle")
-        .style("opacity", "1");
-      d3.selectAll(".mouse-per-line text")
-        .style("opacity", "1");
-    })
-    .on('mousemove', function() { // mouse moving over canvas
-      var mouse = d3.mouse(this);
-      // d3.select(".mouse-line")
-      //   .attr("d", function() {
-      //     var d = "M" + mouse[0] + "," + height;
-      //     d += " " + mouse[0] + "," + 0;
-      //     return d;
-      //   });
+          d3.select(".mouse-line")
+            .style("opacity", "1");
+          d3.selectAll(".mouse-per-line circle")
+            .style("opacity", "1");
+          d3.selectAll(".mouse-per-line text")
+            .style("opacity", "1");
+        })
 
-        d3.select(".mouse-line1")
-        .attr("d", function() {
-          var d1 = "M" + mouse[0] + "," + height;
-          d1 += " " + mouse[0] + "," + 0;
-          return d1;
-        });
+        .on('mousemove', function (event) {
+          let mouse = d3.mouse(this);
 
-      d3.selectAll(".mouse-per-line")
+        //        d3.select(".mouse-line")
+        // .attr("d", function() {
+        //   var d = "M" + mouse[0] + "," + height;
+        //   d += " " + mouse[0] + "," + 0;
+        //   return d;
+        // });
+
+          var invertedx = x.invert(mouse[0]);
+          var invertedy = y.invert(mouse[1]);
+
+                d3.selectAll(".mouse-per-line")
         .attr("transform", function(d, i) {
         //  console.log(width/mouse[0])
-         // var xDate = x.invert(mouse[0]);
-              // bisect = d3.bisector(function(d) { return d.date; }).right;
-              // idx = bisect(d.values, xDate);
-            //  console.log(mouse[0], xDate, d);
+         var xDate = x.invert(mouse[0]);
+              bisect = d3.bisector(function(d) { return d.date; }).right;
+              idx = bisect(d.values, xDate);
+             console.log(mouse[0], xDate, d);
         
           var beginning = 0,
               end = lines[i].getTotalLength(), 
@@ -354,55 +330,44 @@
             else break; //position found
           }
           
-          d3.select(this).select('text')
-          .html(
+          // d3.select(this).select('text')
+          // .html(
+          //     "Temperature: <span id='tooltipTemp'></span>" +
+          //     mouse[0] +
+          //       '<br/>' +
+          //       "TimeRange: <span id='tooltipHum'></span>" +
+          //       y.invert(pos.y).toFixed(2))
+
+          vertical.style('left', pos.x + 50 + 'px');
+
+          horizontal.style('top', pos.y + 10 + 'px');
+
+          tooltip
+          .style('left', pos.x + 50 + 'px')
+          .style('top', pos.y + 10 + 'px')
+            .html(
               "Temperature: <span id='tooltipTemp'></span>" +
-              mouse[0] +
+              x.invert(pos.x) +
                 '<br/>' +
                 "TimeRange: <span id='tooltipHum'></span>" +
-                y.invert(pos.y).toFixed(2))
+                y.invert(pos.y).toFixed(2)
+            );
 
           return "translate(" + mouse[0] + "," + pos.y +")";
-        });            
-    });
+        });    
+        })
+        .on('mouseout', function () {
+          vertical.style('visibility', 'hidden');
+          horizontal.style('visibility', 'hidden');
+          tooltip.style('visibility', 'hidden');
 
-      // d3.select('g')
-      //   .on('mouseover', function () {
-      //     vertical.style('visibility', 'visible');
-      //     horizontal.style('visibility', 'visible');
-      //     tooltip.style('visibility', 'visible');
-      //   })
-
-      //   .on('mousemove', function (event) {
-      //     let mouse = d3.mouse(this);
-
-      //     vertical.style('left', mouse[0] + 'px').on('mouseover', function () {
-      //       vertical.style('left', mouse[1] + 'px');
-      //     });
-
-      //     horizontal.style('top', mouse[0] + 'px').on('mouseover', function () {
-      //       horizontal.style('top', mouse[0] + 'px');
-      //     });
-
-      //     var invertedx = x.invert(mouse[0]);
-      //     var invertedy = y.invert(mouse[1]);
-
-      //     tooltip
-      //       .style('top', mouse[0] + 'px')
-      //       .style('left', mouse[1] + 'px')
-      //       .html(
-      //         "Temperature: <span id='tooltipTemp'></span>" +
-      //           invertedy +
-      //           '<br/>' +
-      //           "TimeRange: <span id='tooltipHum'></span>" +
-      //           invertedx
-      //       );
-      //   })
-      //   .on('mouseout', function () {
-      //     vertical.style('visibility', 'hidden');
-      //     horizontal.style('visibility', 'hidden');
-      //     tooltip.style('visibility', 'hidden');
-      //   });
+          d3.select(".mouse-line")
+            .style("opacity", "0");
+          d3.selectAll(".mouse-per-line circle")
+            .style("opacity", "0");
+          d3.selectAll(".mouse-per-line text")
+            .style("opacity", "0");
+        });
 
       // A function that set idleTimeOut to null
       var idleTimeout;
