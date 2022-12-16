@@ -221,7 +221,7 @@
         .style('position', 'absolute')
         .style('width', '1px')
         .style('height', this.height + 'px')
-        .style('top', this.margin.top + this.margin.bottom + 20 + 'px')
+        .style('top', this.margin.top + 'px')
         .style('bottom', '0px')
         .style('left', '0px')
         .style('background', '#fff')
@@ -311,9 +311,9 @@
         .attr("transform", function(d, i) {
         //  console.log(width/mouse[0])
          var xDate = x.invert(mouse[0]);
-              bisect = d3.bisector(function(d) { return d.date; }).right;
-              idx = bisect(d.values, xDate);
-             console.log(mouse[0], xDate, d);
+            //   bisect = d3.bisector(function(d) { return d.date; }).right;
+            //   idx = bisect(d.values, xDate);
+            //  console.log(mouse[0], xDate, d);
         
           var beginning = 0,
               end = lines[i].getTotalLength(), 
@@ -337,24 +337,25 @@
           //       '<br/>' +
           //       "TimeRange: <span id='tooltipHum'></span>" +
           //       y.invert(pos.y).toFixed(2))
+          vertical.style('left', mouse[0] + 50 + 'px');
 
-          vertical.style('left', pos.x + 50 + 'px');
-
-          horizontal.style('top', pos.y + 10 + 'px');
-
+          horizontal.style('top', mouse[1] + 20 + 'px');
+          
           tooltip
-          .style('left', pos.x + 50 + 'px')
-          .style('top', pos.y + 10 + 'px')
+          .style('left', mouse[0] + 'px')
+          .style('top', mouse[1] - 50 + 'px')
             .html(
               "Temperature: <span id='tooltipTemp'></span>" +
-              x.invert(pos.x) +
+              x.invert(mouse[0]) +
                 '<br/>' +
                 "TimeRange: <span id='tooltipHum'></span>" +
-                y.invert(pos.y).toFixed(2)
-            );
+                y.invert(mouse[1]).toFixed(2)
+            );  
 
           return "translate(" + mouse[0] + "," + pos.y +")";
-        });    
+        });  
+         
+
         })
         .on('mouseout', function () {
           vertical.style('visibility', 'hidden');
